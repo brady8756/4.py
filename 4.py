@@ -1,220 +1,184 @@
-import os
+# Tic Tac Toe
+#井字遊戲、圈圈叉叉遊戲
 import random
 
-def main():
-    while True:
-        mode,player,position,first,tictac=initialize()
-        mode=gameMode()
-        if(mode=='3'): break;
-        elif(mode=='2'):
-            first=getFirst()
-        while True:
-            if(mode=='1'):          #人vs人
-                position=getInput(player)
-                if(CheckPosition(tictac,position)):
-                    place(tictac,player,int(position))
-                    draw(tictac)
-                    if(checkWin(tictac,first,mode)):
-                        break;
-                    player+=1
-            elif(mode=='2'):        #人vs電腦
-                if(first==1):       #人先
-                    position=getInput(0)
-                    if(CheckPosition(tictac,position)):
-                        place(tictac,0,int(position))
-                        draw(tictac)
-                        if(checkWin(tictac,first,mode)):
-                            break;
-                        computer(tictac,first)
-                        if(checkWin(tictac,first,mode)):
-                            break;
-                elif(first==2):     #電腦先
-                    computer(tictac,first)
-                    if(checkWin(tictac,first,mode)):
-                        break;
-                    position=getInput(1)
-                    if(CheckPosition(tictac,position)):
-                        place(tictac,1,int(position))
-                        draw(tictac)
-                        if(checkWin(tictac,first,mode)):
-                            break;
+def 畫井字(格子):#劃出井字
+    # 這個函式用來畫出井字
+
+    # 格子是一個list存O或x或空的位子
+    st.write('   |   |')
+    st.write(' ' + 格子[7] + ' | ' + 格子[8] + ' | ' + 格子[9])#為格子編號
+    st.write('   |   |')
+    st.write('-----------')
+    st.write('   |   |')
+    st.write(' ' + 格子[4] + ' | ' + 格子[5] + ' | ' + 格子[6])
+    st.write('   |   |')
+    st.write('-----------')
+    st.write('   |   |')
+    st.write(' ' + 格子[1] + ' | ' + 格子[2] + ' | ' + 格子[3])
+    st.write('   |   |')
+
+def 決定符號():
+    # 讓玩家選擇要O或X
+    # 玩家的符號先放，電腦的放在後面
+    符號 = ''
+    while not (符號 == 'X' or 符號 == 'O'):#若輸入非O或X就在輸一次
+        st.write('你要圈或是叉?(O/X)')
+        符號 = input().upper()#將輸入轉成大寫
+
+    # 第一個位子存玩家的符號，第二個存電腦的符號
+    if 符號 == 'X':
+        return ['X', 'O']
+    else:
+        return ['O', 'X']
+
+def 誰先():#決定誰先
+    # 亂數決定先後，若亂數是0就電腦先，若是1就玩家先
+    if random.randint(0, 1) == 0:#做0或1的整數亂數
+        return 'computer'
+    else:
+        return 'player'
+
+def 在玩一次():
+    # 若玩家想在玩一次就回傳true，若否就回傳false
+    st.write('你想要在挑戰一次嗎? (yes 或 no)')
+    return input().lower().startswith('y')#轉乘小寫，若是y就開始，只要不是y就結束遊戲
+
+def 移動位子(格子, 符號, 位子):#控制要移動到哪裡
+    格子[位子] = 符號
+
+def 贏了(格子, 符號):
+    # 給定格子和玩家使用的符號, 判斷玩家輸贏，若贏了了就回傳True
+    return ((格子[7] == 符號 and 格子[8] == 符號 and 格子[9] == 符號) or # 最上面連成一條線
+    (格子[4] == 符號 and 格子[5] == 符號 and 格子[6] == 符號) or #中間直行連成一條線
+    (格子[1] == 符號 and 格子[2] == 符號 and 格子[3] == 符號) or #最下面連成一條線
+    (格子[7] == 符號 and 格子[4] == 符號 and 格子[1] == 符號) or #最左側連成一條線
+    (格子[8] == 符號 and 格子[5] == 符號 and 格子[2] == 符號) or #中間橫列連成一條線
+    (格子[9] == 符號 and 格子[6] == 符號 and 格子[3] == 符號) or #最右側連成一條線
+    (格子[7] == 符號 and 格子[5] == 符號 and 格子[3] == 符號) or #從左上到右下連線
+    (格子[9] == 符號 and 格子[5] == 符號 and 格子[1] == 符號)) #從右上到左下連線
+
+def 目前戰況(格子):
+    # 複製目前的戰況.
+    dupeBoard = []
+
+    for i in 格子:
+        dupeBoard.append(i)
+
+    return dupeBoard
+
+def 是否為空(格子, 位子):#判斷還有沒有未填入O或X的格子
+    # 若還有位置就回傳True
+    return 格子[位子] == ' '
+
+def 玩家移動(格子):#讓玩家輸入要走的位子
+    位子= ' '
+    while 位子 not in '1 2 3 4 5 6 7 8 9'.split() or not 是否為空(格子, int(位子)):#若玩家輸入的數字不在1~9，或那一格不是空的，就重新輸入
+        st.write('下一步要走哪? (1-9)')
+        位子 = input()
+    return int(位子)
+
+def 見機移動(格子, 候選位子):
+    #從候選位子選一個移動
+    #回傳是否有空位
+    可行位子 = []
+    for i in 候選位子:
+        if 是否為空(格子, i):
+            可行位子.append(i)
+
+    if len(可行位子) != 0:
+        return random.choice(可行位子)
+    else:
+        return None
+
+def 電腦移動(格子, 電腦符號):
+    # 回傳電腦移動的位子
+    if 電腦符號 == 'X':
+        玩家符號 = 'O'
+    else:
+        玩家符號 = 'X'
+
+    # 電腦移動到哪的判斷(AI)
+    # 首先，找出可以贏的位子
+    for i in range(1, 10):
+        copy = 目前戰況(格子)
+        if 是否為空(copy, i):
+            移動位子(copy, 電腦符號, i)
+            if 贏了(copy, 電腦符號):
+                return i
+
+    # 判斷玩家要贏的位子
+    for i in range(1, 10):
+        copy = 目前戰況(格子)
+        if 是否為空(copy, i):
+            移動位子(copy, 玩家符號, i)
+            if 贏了(copy, 玩家符號):
+                return i
+
+    # 若四個角是空的，就選擇四個角走
+    位子 = 見機移動(格子, [1, 3, 7, 9])
+    if 位子 != None:
+        return 位子
+
+    # 若中間是空的就走中間
+    if 是否為空(格子, 5):
+        return 5
+
+    # 移動到其他的空位
+    return 見機移動(格子, [2, 4, 6, 8])
+
+def 滿了(格子):
+    # 若格子都滿了，就回傳True
+    for i in range(1, 10):
+        if 是否為空(格子, i):
+            return False
+    return True
+
+
+st.write('開始玩井字遊戲')
+
+while True:
+  
+    畫版 = [' '] * 10#重新產生一個空的井字
+    玩家符號, 電腦符號 = 決定符號()#決定玩家和電腦是圈或是叉
+    換誰 = 誰先()#從先的人開始
+    st.write( 換誰 + '先')#輸出從誰開始
+    遊戲進行中 = True#開始遊戲
+
+    while 遊戲進行中:
+        if 換誰 == 'player':#若現在是玩家走
+            畫井字(畫版)#輸出井字
+            位子 = 玩家移動(畫版)#畫版記錄位子
+            移動位子(畫版, 玩家符號, 位子)
+
+            if 贏了(畫版, 玩家符號):
+                畫井字(畫版)
+                st.write('哇嗚~你贏了!!')
+                遊戲進行中 = False#結束遊戲
             else:
-                print("input Error")
-                break;
-    return;
+                if 滿了(畫版):#沒有空的格子
+                    畫井字(畫版)
+                    st.write('平手')
+                    break
+                else:#換電腦走
+                    換誰 = 'computer'
 
-def initialize():
-    tictac=[' ' for i in range(9)]
-    return 0,0,0,0,tictac;
-
-def getFirst():
-    print("1-->人先、2-->電腦先")
-    first=int(input())
-    return first;
-
-def getInput(player):
-    if(player%2==0):
-        print("O: ",end='')
-        position=input()
-    else:
-        print("X: ",end='')
-        position=input()
-    return position;
-
-def gameMode():
-    print("1=人vs人、2=人vs電腦、3=離開")
-    print("請輸入遊戲模式:",end='')
-    mode=input()
-    return mode;
-
-def CheckPosition(tictac,position):
-    if(position>'9' or position<'1'):
-        print("Input Error")
-        return 0;
-    elif(tictac[int(position)-1]!=' '):
-        print("Same position Error")
-        return 0;
-    return 1;
-
-def place(tictac,player,position):
-    if(player%2==0):
-        tictac[position-1]='O'
-    else:
-        tictac[position-1]='X'
-    return;
-
-def draw(tictac):
-    os.system("cls")
-    for i in range(2,-1,-1):
-        li=[tictac[i*3+j] for j in range(3)]
-        for j in li:
-            print("|",j," ",sep='',end='')
-        print("|")
-    print()
-    return;
-
-def checkWin(tictac,first,mode):
-    for i in range(3):
-        row=[tictac[i*3+j] for j in range(3)]
-        column=[tictac[i+j*3] for j in range(3)]
-        if(checkLine(row,first,mode)):
-            return 1;
-        if(checkLine(column,first,mode)):
-            return 1;
-        slide=[tictac[4*i] for i in range(3)]
-        if(checkLine(slide,first,mode)):
-            return 1;
-        slide=[tictac[2*i] for i in range(1,4)]
-        if(checkLine(slide,first,mode)):
-            return 1;
-    if(tictac.count(' ')==0):
-        print("Draw")
-        return 1;
-    return 0;
-
-def checkLine(line,first,mode):
-    numO=line.count('O')
-    numX=line.count('X')
-    if(mode=='1'):
-        if(numO==3):
-            print("Player O Win.")
-            return 1;
-        elif(numX==3):
-            print("Player X Win.")
-            return 1;
-    elif(mode=='2'):
-        if(first==1):       #人先
-            if(numO==3):    #人贏
-                print("Player Win.")
-                return 1;
-            elif(numX==3):  #電腦贏
-                print("Computer Win.")
-                return 1;
-        elif(first==2):
-            if(numO==3):    #電腦贏
-                print("Computer Win.")
-                return 1;
-            elif(numX==3):  #人贏
-                print("Player Win.")
-                return 1;
-    return 0;
-
-def computer(tictac,first):
-    corner=[1,3,7,9]
-    unPlace=[]
-    for i,xi in enumerate(tictac):
-        if(xi==' '):
-            unPlace.append(i+1)
         else:
-            if(i+1 in corner):
-                corner.remove(i+1)
-    if(first==1):       #人先
-        if(readyWin(tictac,first)):
-            draw(tictac)
-            return;
-        elif(tictac[4]==' '):
-            place(tictac,first,5)
-        elif(len(corner)>0):
-            place(tictac,first,random.choice(corner))
-        else:
-            place(tictac,first,random.choice(unPlace))
-    elif(first==2):
-        if(tictac[4]==' '):
-            place(tictac,first,5)
-        elif(readyWin(tictac,first)):
-            draw(tictac)
-            return;
-        elif(len(corner)>0):
-            place(tictac,first,random.choice(corner))
-        else:
-            place(tictac,first,random.choice(unPlace))
-    draw(tictac)
-    return;
+            # 電腦走
+            位子 = 電腦移動(畫版, 電腦符號)
+            移動位子(畫版, 電腦符號, 位子)
 
-def readyWin(tictac,first):
-    for i in range(3):
-        row=[tictac[i*3+j] for j in range(3)]
-        column=[tictac[i+j*3] for j in range(3)]
-        ready,position=readyLine(row,first)
-        if(ready):
-            position+=i*3+1
-            place(tictac,first,position)
-            return 1;
-        ready,position=readyLine(column,first)
-        if(ready):
-            position=position*3+i+1
-            place(tictac,first,position)
-            return 1;
-    slide=[tictac[4*i] for i in range(3)]
-    ready,position=readyLine(slide,first)
-    if(ready):
-        position=position*4+1
-        place(tictac,first,position)
-        return 1;
-    slide=[tictac[2*i] for i in range(1,4)]
-    ready,position=readyLine(slide,first)
-    if(ready):
-        position=(position+1)*2+1
-        place(tictac,first,position)
-        return 1;
-    return 0;
+            if 贏了(畫版, 電腦符號):
+                畫井字(畫版)
+                st.write('電腦獲勝，再接再厲吧~')
+                遊戲進行中 = False#結束遊戲
+            else:
+                if 滿了(畫版):#沒有空的格子
+                    畫井字(畫版)
+                    st.write('平手')
+                    break
+                else:#換玩家走
+                    換誰 = 'player'
 
-def readyLine(line,first):
-    numO=line.count('O')
-    numX=line.count('X')
-    if(first==2):       #電腦先
-        if(numO==2 and numX==0):
-            return 1,line.index(' ');
-        elif(numX==2 and numO==0):
-            return 1,line.index(' ');
-        else:
-            return 0,0;
-    elif(first==1):     #人先
-        if(numX==2 and numO==0):
-            return 1,line.index(' ');
-        elif(numO==2 and numX==0):
-            return 1,line.index(' ');
-        else:
-            return 0,0;
-
-main()
+    if not 在玩一次():
+        break
