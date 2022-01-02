@@ -1,5 +1,5 @@
 #將10進位轉成3進位
-def three(integer)
+def three(integer) 
   i = 0
   arr = [0,0,0,0,0,0,0,0,0]
   while i < 9
